@@ -34,15 +34,17 @@ def full_menu_kb():
 
 
 def product_menu_kb():
-    kb_list = [[InlineKeyboardButton(text="✅ В корзину", callback_data='soup')]]
+    kb_list = [[InlineKeyboardButton(text="✅ Добавить в корзину", callback_data='soup')]]
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=kb_list,
                                        resize_keyboard=True,
                                        one_time_keyboard=True)
     return keyboard
 
+
 def product_to_menu_kb():
-    kb_list = [[InlineKeyboardButton(text="↩ Назад", callback_data='menu')]]
+    kb_list = [[InlineKeyboardButton(text="↩ Назад", callback_data='menu')],
+               [InlineKeyboardButton(text="🛒 Корзина", callback_data='basket')]]
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=kb_list,
                                        resize_keyboard=True,
