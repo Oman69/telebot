@@ -24,7 +24,8 @@ async def process_callback_basket(callback_query: CallbackQuery):
 
 @dp.callback_query(F.data == 'salad')
 async def process_callback_product(callback_query: CallbackQuery):
-    products = [{'img': FSInputFile('images/salad.jpeg'), 'caption': 'Салат греческий\nВес: 150 гр\nЦена: 200 руб'}]
+    products = [{'img': FSInputFile('images/salad.jpeg'), 'caption': 'Салат греческий\nВес: 150 гр\nЦена: 200 руб','id': 1, 'in_basket': 0},
+                {'img': FSInputFile('images/salad.jpeg'), 'caption': 'Салат японский\nВес: 160 гр\nЦена: 230 руб','id': 2, 'in_basket': 0}]
     try:
         for product in products:
             await callback_query.message.answer_photo(product['img'],
