@@ -33,8 +33,17 @@ def full_menu_kb():
     return keyboard
 
 
-def product_menu_kb():
+def product_to_basket_kb():
     kb_list = [[InlineKeyboardButton(text="✅ Добавить в корзину", callback_data='to_basket')]]
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=kb_list,
+                                       resize_keyboard=True,
+                                       one_time_keyboard=True)
+    return keyboard
+
+
+def product_from_basket_kb():
+    kb_list = [[InlineKeyboardButton(text="❌ Удалить из корзины", callback_data='from_basket')]]
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=kb_list,
                                        resize_keyboard=True,

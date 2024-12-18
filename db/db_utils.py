@@ -1,10 +1,8 @@
-from sqlalchemy import insert, Table
+from sqlalchemy import insert, Table, select
 from db.create_db import engine, products
 
-# insert_query = insert(products).values(name='Салат мимоза', weigh=250, price=200.00)
 
-
-def insert_to_db(table: Table, params):
+def insert_to_table(table: Table, params):
 
     insert_query = insert(table).values(**params)
     try:
@@ -12,8 +10,19 @@ def insert_to_db(table: Table, params):
             connection.execute(insert_query)
             connection.commit()
     except Exception as E:
-        print(f'Ошибка добавления данных в базу данных: {E}')
+        print(f'Ошибка добавления данных в БД: {E}')
 
 
-# insert_to_db(products, {'name': 'Салат мимоза', 'weigh': 250, 'price': 200.00})
-insert_to_db(products, {'name': 'Салат крабовый', 'weigh': 220, 'price': 150.00})
+def select_from_table(table: Table, params=None):
+
+    if not params:
+        select_query = select(table)
+    else:
+        # select_query = select(table).where(users.c.name == 'Maria')
+        pass
+    try:
+        with engine.connect() as connection:
+            result = connection.execute(select_query)
+            return result
+    except Exception as E:
+        print(f'Ошибка чтения данных из БД: {E}')
