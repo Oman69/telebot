@@ -27,7 +27,7 @@ async def process_callback_to_basket(callback_query: CallbackQuery):
     # ToDo Добавить в БД
     try:
         await callback_query.message.edit_caption(
-            caption=callback_query.message.caption + '\n' + '<b>➕ Товар добавлен в корзину</b>',
+            caption=callback_query.message.caption + '\n' + '<b>✔️Товар добавлен в корзину</b>',
             reply_markup=product_from_basket_kb(), parse_mode='HTML'
         )
     except TelegramBadRequest:
@@ -48,16 +48,17 @@ async def process_callback_to_basket(callback_query: CallbackQuery):
 
 @dp.callback_query(F.data == 'salad')
 async def process_callback_product(callback_query: CallbackQuery):
-    result = select_from_table(products)
-    # products = [
-    #     {'img': FSInputFile('images/salad.jpeg'), 'caption': 'Салат греческий\nВес: 150 гр\nЦена: 200 руб', 'id': 1,
-    #      'in_basket': 0},
-    #     {'img': FSInputFile('images/salad.jpeg'), 'caption': 'Салат японский\nВес: 160 гр\nЦена: 230 руб', 'id': 2,
-    #      'in_basket': 0}]
+    result = select_from_table(products, {'value': 'salad'})
     try:
         for product in result:
-            await callback_query.message.answer_photo(product['img'],
-                                                      caption=product['caption'],
+            print(product)
+            img = FSInputFile('images/salad.jpeg')
+            name = product._data[1]
+            weight = product._data[3]
+            price = product._data[4]
+            caption = name + '\n' + str(weight) + ' грамм\n' + str(price) + ' рублей\n'
+            await callback_query.message.answer_photo(img,
+                                                      caption=caption,
                                                       reply_markup=product_to_basket_kb())
         await callback_query.message.answer(
             text='Вернуться в меню',

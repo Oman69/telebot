@@ -1,5 +1,5 @@
-from sqlalchemy import insert, Table, select
-from db.create_db import engine, products
+from sqlalchemy import insert, Table, select, create_engine
+engine = create_engine('sqlite:///telebot_db.db')
 
 
 def insert_to_table(table: Table, params):
@@ -18,8 +18,7 @@ def select_from_table(table: Table, params=None):
     if not params:
         select_query = select(table)
     else:
-        # select_query = select(table).where(users.c.name == 'Maria')
-        pass
+        select_query = select(table).where(table.c.category == params['value'])
     try:
         with engine.connect() as connection:
             result = connection.execute(select_query)

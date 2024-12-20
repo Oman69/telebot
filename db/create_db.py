@@ -1,9 +1,9 @@
 import uuid
 
-from sqlalchemy import create_engine, func, insert, Boolean
-from sqlalchemy import Table, Column, Integer, String, MetaData, DateTime, UUID, ForeignKey, Float
-engine = create_engine('sqlite:///telebot_db.db')
+from sqlalchemy import func
+from sqlalchemy import Table, Column, Integer, String, MetaData, DateTime, UUID, ForeignKey, Float, Boolean
 
+from db.db_utils import insert_to_table, engine
 
 metadata = MetaData()
 
@@ -17,12 +17,6 @@ orders = Table(
     Column('ordered', Boolean, default=False),
 )
 
-category = Table(
-    'category', metadata,
-    Column('uid', UUID, primary_key=True),
-    Column('name', String, nullable=False),
-)
-
 
 products = Table(
     'products', metadata,
@@ -31,12 +25,11 @@ products = Table(
     Column('description', String),
     Column('weigh', Integer),
     Column('price', Float, nullable=False),
-    Column('category', ForeignKey('category.uid'), nullable=False)
+    Column('category', String, nullable=False)
 )
 
-
 orders_products = Table(
-    'order_products', metadata,
+    'orders_products', metadata,
     Column('uid', UUID, primary_key=True),
     Column('order_id', ForeignKey('orders.uid'), nullable=False),
     Column('product_id', ForeignKey('products.uid'), nullable=False),
@@ -46,5 +39,6 @@ orders_products = Table(
 
 metadata.create_all(engine)
 
-# insert_to_db(products, {'name': 'Салат мимоза', 'weigh': 250, 'price': 200.00})
-# insert_to_table(products, {'name': 'Салат крабовый', 'weigh': 220, 'price': 150.00})
+
+# insert_to_table(products, {'uid': uuid.uuid4(), 'name': 'Салат мимоза', 'weigh': 250, 'price': 200.00, 'category': 'salad'})
+# insert_to_table(products, {'uid': uuid.uuid4(),'name': 'Салат крабовый', 'weigh': 220, 'price': 150.00, 'category': 'salad'})
