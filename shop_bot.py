@@ -1,11 +1,14 @@
+import uuid
+
 from aiogram import Bot, Dispatcher, F
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, CommandStart
+from aiogram.filters.callback_data import CallbackData
 from aiogram.types import Message, CallbackQuery, FSInputFile
 from bot_config import BOT_TOKEN
 from keyboards import full_menu_kb, start_kb, product_to_menu_kb, product_from_basket_kb, product_to_basket_kb
 from db.db_utils import insert_to_table, select_from_table
-from db.create_db import products
+from db.create_db import products, orders
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -22,10 +25,17 @@ async def process_callback_basket(callback_query: CallbackQuery):
         await callback_query.answer()
 
 
-@dp.callback_query(F.data == 'to_basket')
+@dp.callback_query(F.data.split(':')[0] == 'to_basket')
 async def process_callback_to_basket(callback_query: CallbackQuery):
     # ToDo Добавить в БД
     try:
+        product_id = callback_query.data.split(':')[1]
+        user_id = callback_query.from_user.id
+        insert_to_table(orders, {'uid': uuid.uuid4(), 'user_id': user_id})
+        # Получить id заказа
+        order_id = select_from_table(orders, 'uid')
+        # Получить добавить заказ-блюдо в таблицу
+
         await callback_query.message.edit_caption(
             caption=callback_query.message.caption + '\n' + '<b>✔️Товар добавлен в корзину</b>',
             reply_markup=product_from_basket_kb(), parse_mode='HTML'
@@ -48,18 +58,18 @@ async def process_callback_to_basket(callback_query: CallbackQuery):
 
 @dp.callback_query(F.data == 'salad')
 async def process_callback_product(callback_query: CallbackQuery):
-    result = select_from_table(products, {'value': 'salad'})
+    result = select_from_table(products, {'column': 'category', 'value': 'salad'})
     try:
-        for product in result:
-            print(product)
+        for product in result.fetchall():
             img = FSInputFile('images/salad.jpeg')
-            name = product._data[1]
-            weight = product._data[3]
-            price = product._data[4]
+            name = product.t[1]
+            weight = product.t[3]
+            price = product.t[4]
             caption = name + '\n' + str(weight) + ' грамм\n' + str(price) + ' рублей\n'
+            product_id = str(product.t[0])
             await callback_query.message.answer_photo(img,
                                                       caption=caption,
-                                                      reply_markup=product_to_basket_kb())
+                                                      reply_markup=product_to_basket_kb(product_id))
         await callback_query.message.answer(
             text='Вернуться в меню',
             reply_markup=product_to_menu_kb())

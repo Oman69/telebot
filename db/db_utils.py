@@ -13,10 +13,12 @@ def insert_to_table(table: Table, params):
         print(f'Ошибка добавления данных в БД: {E}')
 
 
-def select_from_table(table: Table, params=None):
+def select_from_table(table: Table, column=None, params=None):
 
-    if not params:
+    if not params and not column:
         select_query = select(table)
+    elif column:
+        select_query = select(table.c.column)
     else:
         select_query = select(table).where(table.c.category == params['value'])
     try:

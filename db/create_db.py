@@ -10,7 +10,7 @@ metadata = MetaData()
 orders = Table(
     'orders', metadata,
     Column('uid', UUID, primary_key=True),
-    Column('number', Integer, autoincrement=True, nullable=False),
+    Column('number', Integer, autoincrement=True, nullable=False, default=1),
     Column('user_id', String, nullable=False),
     Column('datetime_create', DateTime(timezone=True, ), onupdate=func.now()),
     Column('datetime_get', DateTime(timezone=True,)),
