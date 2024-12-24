@@ -33,9 +33,15 @@ def full_menu_kb():
     return keyboard
 
 
-def product_to_basket_kb(product_id: str):
-    kb_list = [[InlineKeyboardButton(text="✅ Добавить в корзину",
-                                     callback_data='to_basket' + ':' + product_id)]]
+def product_to_basket_kb(product_id: str, product_value: int):
+    if product_value == 0:
+        kb_list = [[InlineKeyboardButton(text="✅ Добавить в корзину",
+                                         callback_data='to_basket' + ':' + product_id)]]
+    else:
+        kb_list = [[InlineKeyboardButton(text="❌ Удалить из корзины", callback_data='from_basket:' + product_id)],
+                   [InlineKeyboardButton(text="✅ Добавить в корзину",
+                                         callback_data='to_basket' + ':' + product_id)]]
+
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=kb_list,
                                     resize_keyboard=True,
@@ -56,6 +62,19 @@ def product_from_basket_kb(product_id: str):
 def product_to_menu_kb():
     kb_list = [[InlineKeyboardButton(text="↩ Назад", callback_data='menu')],
                [InlineKeyboardButton(text="🛒 Корзина", callback_data='basket')]]
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=kb_list,
+                                    resize_keyboard=True,
+                                    one_time_keyboard=True)
+    return keyboard
+
+
+def basket_kb():
+    kb_list = [
+                [InlineKeyboardButton(text="🍽 Продолжить покупки", callback_data='menu')],
+                [InlineKeyboardButton(text="✅ Подтвердить заказ", callback_data='confirm_order')],
+                [InlineKeyboardButton(text="❌ Отменить заказ", callback_data='delete_order')],
+               ]
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=kb_list,
                                     resize_keyboard=True,

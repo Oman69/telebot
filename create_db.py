@@ -1,6 +1,7 @@
+import datetime
 import uuid
 
-from sqlalchemy import func, create_engine
+from sqlalchemy import create_engine
 from sqlalchemy import Table, Column, Integer, String, MetaData, DateTime, UUID, ForeignKey, Float, Boolean
 
 engine = create_engine('sqlite:///telebot_db.db')
@@ -9,11 +10,11 @@ metadata = MetaData()
 
 orders = Table(
     'orders', metadata,
-    Column('uid', UUID, primary_key=True),
-    Column('number', Integer, autoincrement=True, nullable=False, default=1),
+    Column('uid', UUID, primary_key=True, unique=False),
+    Column('number', Integer, autoincrement=True, default=0),
     Column('user_id', String, nullable=False),
-    Column('datetime_create', DateTime(timezone=True, ), onupdate=func.now()),
-    Column('datetime_get', DateTime(timezone=True,)),
+    Column('datetime_create', DateTime, default=datetime.datetime.now()),
+    Column('datetime_get', String),
     Column('ordered', Boolean, default=False),
 )
 
