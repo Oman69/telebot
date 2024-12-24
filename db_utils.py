@@ -1,5 +1,6 @@
-from sqlalchemy import insert, Table, select, create_engine
-engine = create_engine('sqlite:///telebot_db.db')
+
+from sqlalchemy import insert, Table, select
+from create_db import engine
 
 
 def insert_to_table(table: Table, params):
@@ -17,8 +18,6 @@ def select_from_table(table: Table, column=None, params=None):
 
     if not params and not column:
         select_query = select(table)
-    elif column:
-        select_query = select(table.c.column)
     else:
         select_query = select(table).where(table.c.category == params['value'])
     try:
@@ -27,3 +26,7 @@ def select_from_table(table: Table, column=None, params=None):
             return result
     except Exception as E:
         print(f'Ошибка чтения данных из БД: {E}')
+
+
+# insert_to_table(products, {'uid': uuid.uuid4(), 'name': 'Салат мимоза', 'weigh': 250, 'price': 200.00, 'category': 'salad'})
+# insert_to_table(products, {'uid': uuid.uuid4(),'name': 'Салат крабовый', 'weigh': 220, 'price': 150.00, 'category': 'salad'})

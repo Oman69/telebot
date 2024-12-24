@@ -1,4 +1,4 @@
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from bot_config import ADMINS
 
@@ -43,8 +43,9 @@ def product_to_basket_kb(product_id: str):
     return keyboard
 
 
-def product_from_basket_kb():
-    kb_list = [[InlineKeyboardButton(text="❌ Удалить из корзины", callback_data='from_basket')]]
+def product_from_basket_kb(product_id: str):
+    kb_list = [[InlineKeyboardButton(text="❌ Удалить из корзины", callback_data='from_basket:' + product_id)],
+               [InlineKeyboardButton(text="✅ Купить ещё", callback_data='to_basket:' + product_id)]]
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=kb_list,
                                     resize_keyboard=True,

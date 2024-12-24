@@ -1,9 +1,9 @@
 import uuid
 
-from sqlalchemy import func
+from sqlalchemy import func, create_engine
 from sqlalchemy import Table, Column, Integer, String, MetaData, DateTime, UUID, ForeignKey, Float, Boolean
 
-from db.db_utils import insert_to_table, engine
+engine = create_engine('sqlite:///telebot_db.db')
 
 metadata = MetaData()
 
@@ -33,12 +33,8 @@ orders_products = Table(
     Column('uid', UUID, primary_key=True),
     Column('order_id', ForeignKey('orders.uid'), nullable=False),
     Column('product_id', ForeignKey('products.uid'), nullable=False),
-    Column('value', Integer, nullable=False),
+    Column('value', Integer, nullable=False, default=1),
 )
 
 
 metadata.create_all(engine)
-
-
-# insert_to_table(products, {'uid': uuid.uuid4(), 'name': 'Салат мимоза', 'weigh': 250, 'price': 200.00, 'category': 'salad'})
-# insert_to_table(products, {'uid': uuid.uuid4(),'name': 'Салат крабовый', 'weigh': 220, 'price': 150.00, 'category': 'salad'})

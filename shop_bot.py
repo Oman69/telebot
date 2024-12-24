@@ -1,14 +1,14 @@
 import uuid
-
 from aiogram import Bot, Dispatcher, F
 from aiogram.exceptions import TelegramBadRequest
-from aiogram.filters import Command, CommandStart
-from aiogram.filters.callback_data import CallbackData
+from aiogram.filters import CommandStart
 from aiogram.types import Message, CallbackQuery, FSInputFile
+from sqlalchemy import select, and_
+
 from bot_config import BOT_TOKEN
 from keyboards import full_menu_kb, start_kb, product_to_menu_kb, product_from_basket_kb, product_to_basket_kb
-from db.db_utils import insert_to_table, select_from_table
-from db.create_db import products, orders
+from db_utils import insert_to_table, select_from_table
+from create_db import products, orders, orders_products, engine
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -25,32 +25,74 @@ async def process_callback_basket(callback_query: CallbackQuery):
         await callback_query.answer()
 
 
+def check_product_in_order(product_id:uuid.UUID):
+    """
+
+    :param product_id:
+    :return:
+    """
+    query = select(orders_products).where(orders_products.c.order_id == order_id).where(
+        orders_products.c.product_id == product_id)
+    k = 0
+    with engine.connect() as conn:
+        for _ in conn.execute(query):
+            k += 1
+    return k
+
+
+def insert_product_to_table(user_id: int, product_id: uuid.UUID):
+    """
+
+    :param user_id:
+    :param product_id:
+    :return:
+    """
+    # Добавить заказ в таблицу
+    insert_to_table(orders, {'uid': order_id, 'user_id': user_id})
+    # Добавить заказ-блюдо в таблицу
+    insert_to_table(orders_products, {'uid': uuid.uuid4(), 'order_id': order_id, 'product_id': product_id})
+
+
+def plus_product_in_basket():
+    # Получить количество товара в корзине
+    # Увеличить на 1
+    # Положить значение в БД
+    pass
+
+
 @dp.callback_query(F.data.split(':')[0] == 'to_basket')
 async def process_callback_to_basket(callback_query: CallbackQuery):
     # ToDo Добавить в БД
     try:
-        product_id = callback_query.data.split(':')[1]
+        product_id = uuid.UUID(callback_query.data.split(':')[1])
         user_id = callback_query.from_user.id
-        insert_to_table(orders, {'uid': uuid.uuid4(), 'user_id': user_id})
-        # Получить id заказа
-        order_id = select_from_table(orders, 'uid')
-        # Получить добавить заказ-блюдо в таблицу
+        # Посмотреть количество записей в orders_products
+        row = check_product_in_order(product_id)
+
+        if row != 0:
+            print('Увеличиваем количество товара в корзине')
+            plus_product_in_basket()
+        else:
+            print('Положил товар в корзину')
+            insert_product_to_table(user_id, product_id)
 
         await callback_query.message.edit_caption(
             caption=callback_query.message.caption + '\n' + '<b>✔️Товар добавлен в корзину</b>',
-            reply_markup=product_from_basket_kb(), parse_mode='HTML'
+            reply_markup=product_from_basket_kb(str(product_id)), parse_mode='HTML'
         )
     except TelegramBadRequest:
         await callback_query.answer()
 
 
-@dp.callback_query(F.data == 'from_basket')
+@dp.callback_query(F.data.split(':')[0] == 'from_basket')
 async def process_callback_to_basket(callback_query: CallbackQuery):
     # ToDo Удалить из БД
+    product_id = uuid.UUID(callback_query.data.split(':')[1])
+    print('Удалил товар из корзины')
     try:
         await callback_query.message.edit_caption(
             caption=callback_query.message.caption + '\n' + '<b>❗ Товар удален из корзины</b>',
-            reply_markup=product_to_basket_kb(), parse_mode='HTML'
+            reply_markup=product_to_basket_kb(str(product_id)), parse_mode='HTML'
         )
     except TelegramBadRequest:
         await callback_query.answer()
@@ -58,7 +100,7 @@ async def process_callback_to_basket(callback_query: CallbackQuery):
 
 @dp.callback_query(F.data == 'salad')
 async def process_callback_product(callback_query: CallbackQuery):
-    result = select_from_table(products, {'column': 'category', 'value': 'salad'})
+    result = select_from_table(products, params={'value': 'salad'})
     try:
         for product in result.fetchall():
             img = FSInputFile('images/salad.jpeg')
@@ -97,6 +139,8 @@ async def start_message(callback_query: CallbackQuery):
 # Этот хэндлер будет срабатывать на команду "/start"
 @dp.message(CommandStart())
 async def process_start_command(message: Message):
+    global order_id
+    order_id = uuid.uuid4()
     await message.answer(text="Привет, {0.first_name} 👋\nВоспользуйся кнопками".format(message.from_user),
                          reply_markup=start_kb(message.from_user.id))
 
