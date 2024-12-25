@@ -3,7 +3,6 @@ from aiogram import Bot, Dispatcher, F
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import CommandStart
 from aiogram.types import Message, CallbackQuery, FSInputFile
-
 from basket import Basket
 from bot_config import BOT_TOKEN
 from keyboards import full_menu_kb, start_kb, product_to_menu_kb, product_from_basket_kb, product_to_basket_kb, \
@@ -15,13 +14,15 @@ bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 bs = Basket()
 
+
 @dp.callback_query(F.data == 'basket')
 async def process_callback_basket(callback_query: CallbackQuery):
     basket_text = bs.view_all_basket()
     try:
         await callback_query.message.answer(
             text=basket_text,
-            reply_markup=basket_kb()
+            reply_markup=basket_kb(),
+            parse_mode='HTML'
         )
     except TelegramBadRequest:
         await callback_query.answer()
@@ -69,14 +70,13 @@ async def process_callback_product(callback_query: CallbackQuery):
     try:
         for product in result.fetchall():
             img = FSInputFile('images/salad.jpeg')
-            name = product.t[1]
-            weight = product.t[3]
-            price = product.t[4]
-            caption = name + '\n' + str(weight) + ' грамм\n' + str(price) + ' рублей\nВ корзине: 0'
-            product_id = str(product.t[0])
+            product_id, name, description, weight, price, category = product.t
+            current_value = bs.get_current_value_by_product_id(product_id)
+            caption = name + '\n' + str(weight) + ' грамм\n' + str(price) + ' рублей\nВ корзине: ' + str(current_value)
+            # ToDo Проверить наличие товара в корзине
             await callback_query.message.answer_photo(img,
                                                       caption=caption,
-                                                      reply_markup=product_to_basket_kb(product_id, 0))
+                                                      reply_markup=product_to_basket_kb(str(product_id), current_value))
         await callback_query.message.answer(
             text='Вернуться в меню',
             reply_markup=product_to_menu_kb())

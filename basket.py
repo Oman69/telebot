@@ -40,7 +40,7 @@ class Basket:
 
     def change_value_in_basket(self, product_id: uuid.UUID, current_value: int, operation: bool = True):
         """
-        Увеличиваем количество товаров в корзине
+        Увеличиваем количество товара в корзине
         :param product_id:
         :param current_value:
         :param operation:
@@ -58,6 +58,12 @@ class Basket:
             connection.commit()
 
     def get_current_value_by_product_id(self, product_id):
+        """
+        Получить количество товара корзине
+        :param product_id:
+        :return:
+        """
+        value = 0
         query = select(orders_products).where(orders_products.c.order_id == self.order_id).where(
             orders_products.c.product_id == product_id)
         with engine.connect() as conn:
@@ -75,5 +81,33 @@ class Basket:
                 return True
         return False
 
+    def get_products_in_basket(self):
+        # Получил продукты в корзине
+        query = select(orders_products).where(orders_products.c.order_id == self.order_id)
+        products_in_basket = []
+        with engine.connect() as conn:
+            for row in conn.execute(query):
+                products_in_basket.append({'product_id': row.t[2], 'value': row.t[3]})
+        return products_in_basket
+
     def view_all_basket(self):
-        return 'Товары в корзине'
+        # Получил продукты в корзине
+        products_in_basket = self.get_products_in_basket()
+
+        total = 0
+        if bool(products_in_basket):
+            message = 'Товары в корзине:\n'
+            for item in products_in_basket:
+                query = select(products.c.name, products.c.price).where(products.c.uid == item['product_id'])
+                with engine.connect() as conn:
+                    for row in conn.execute(query):
+                        name = row.t[0]
+                        price = row.t[1]
+                        message += name + ' ' + str(price) + ' руб.' + ' - ' + str(item['value']) + ' шт.\n'
+                        total += item['value'] * price
+
+            message += '<b>Сумма заказа: ' + str(total) + ' руб.</b>'
+
+        else:
+            message = 'Товары в корзину не добавлены\n'
+        return message

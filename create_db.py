@@ -32,8 +32,8 @@ products = Table(
 orders_products = Table(
     'orders_products', metadata,
     Column('uid', UUID, primary_key=True),
-    Column('order_id', ForeignKey('orders.uid'), nullable=False),
-    Column('product_id', ForeignKey('products.uid'), nullable=False),
+    Column('order_id', ForeignKey('orders.uid', ondelete="CASCADE"), nullable=False),
+    Column('product_id', ForeignKey('products.uid', ondelete="CASCADE"), nullable=False),
     Column('value', Integer, nullable=False, default=1),
 )
 
