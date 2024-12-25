@@ -98,6 +98,7 @@ class Basket:
         if bool(products_in_basket):
             message = 'Товары в корзине:\n'
             for item in products_in_basket:
+                # if item['value'] > 0: Fix bag
                 query = select(products.c.name, products.c.price).where(products.c.uid == item['product_id'])
                 with engine.connect() as conn:
                     for row in conn.execute(query):

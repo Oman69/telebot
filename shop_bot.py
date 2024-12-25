@@ -1,4 +1,5 @@
 import uuid
+from create_db import products
 from aiogram import Bot, Dispatcher, F
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import CommandStart
@@ -8,7 +9,6 @@ from bot_config import BOT_TOKEN
 from keyboards import full_menu_kb, start_kb, product_to_menu_kb, product_from_basket_kb, product_to_basket_kb, \
     basket_kb
 from db_utils import select_from_table
-from create_db import products
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -87,7 +87,7 @@ async def process_callback_product(callback_query: CallbackQuery):
 
 @dp.callback_query(F.data == 'menu')
 async def process_callback_menu(callback_query: CallbackQuery):
-    await callback_query.message.edit_text(
+    await callback_query.message.answer(
         text='Выберите категорию, чтобы вывести список товаров:',
         reply_markup=full_menu_kb()
     )
