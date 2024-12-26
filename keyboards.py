@@ -1,4 +1,4 @@
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
 
 from bot_config import ADMINS
 
@@ -74,6 +74,20 @@ def basket_kb():
                 [InlineKeyboardButton(text="🍽 Продолжить покупки", callback_data='menu')],
                 [InlineKeyboardButton(text="✅ Подтвердить заказ", callback_data='confirm_order')],
                 [InlineKeyboardButton(text="❌ Отменить заказ", callback_data='delete_order')],
+               ]
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=kb_list,
+                                    resize_keyboard=True,
+                                    one_time_keyboard=True)
+    return keyboard
+
+
+def receipt_time_kb():
+    kb_list = [
+                [InlineKeyboardButton(text="Через 15 минут", callback_data='receipt_time:15')],
+                [InlineKeyboardButton(text="Через 30 минут", callback_data='receipt_time:30')],
+                [InlineKeyboardButton(text="Через 45 минут", callback_data='receipt_time:45')],
+                [InlineKeyboardButton(text="Через 1 час", callback_data='receipt_time:60')],
                ]
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=kb_list,

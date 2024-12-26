@@ -7,21 +7,47 @@ from aiogram.types import Message, CallbackQuery, FSInputFile
 from basket import Basket
 from bot_config import BOT_TOKEN
 from keyboards import full_menu_kb, start_kb, product_to_menu_kb, product_from_basket_kb, product_to_basket_kb, \
-    basket_kb
+    basket_kb, receipt_time_kb
 from db_utils import select_from_table
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
-bs = Basket()
+
+
+@dp.callback_query(F.data == 'confirm_order')
+async def process_callback_delete_order(callback_query: CallbackQuery):
+    bs.confirm_order()
+    try:
+        await callback_query.message.answer(
+            text='{0}, ваш заказ успешно подтверждён\nПожалуйста, укажите через какое время заберете заказ'.format(
+                callback_query.from_user.username),
+            reply_markup=receipt_time_kb())
+    except TelegramBadRequest:
+        await callback_query.answer()
+
+
+@dp.callback_query(F.data == 'delete_order')
+async def process_callback_delete_order(callback_query: CallbackQuery):
+    bs.delete_order()
+    try:
+        await callback_query.message.answer(
+            text='Ваш заказ успешно отменен',
+            reply_markup=start_kb(callback_query.from_user.id)),
+    except TelegramBadRequest:
+        await callback_query.answer()
 
 
 @dp.callback_query(F.data == 'basket')
 async def process_callback_basket(callback_query: CallbackQuery):
     basket_text = bs.view_all_basket()
+    if basket_text != 'Товары в корзину не добавлены\n':
+        keyboard = basket_kb()
+    else:
+        keyboard = start_kb(callback_query.from_user.id)
     try:
         await callback_query.message.answer(
             text=basket_text,
-            reply_markup=basket_kb(),
+            reply_markup=keyboard,
             parse_mode='HTML'
         )
     except TelegramBadRequest:
@@ -73,7 +99,6 @@ async def process_callback_product(callback_query: CallbackQuery):
             product_id, name, description, weight, price, category = product.t
             current_value = bs.get_current_value_by_product_id(product_id)
             caption = name + '\n' + str(weight) + ' грамм\n' + str(price) + ' рублей\nВ корзине: ' + str(current_value)
-            # ToDo Проверить наличие товара в корзине
             await callback_query.message.answer_photo(img,
                                                       caption=caption,
                                                       reply_markup=product_to_basket_kb(str(product_id), current_value))
@@ -104,6 +129,8 @@ async def start_message(callback_query: CallbackQuery):
 # Этот хэндлер будет срабатывать на команду "/start"
 @dp.message(CommandStart())
 async def process_start_command(message: Message):
+    global bs
+    bs = Basket()
     await message.answer(text="Привет, {0.first_name} 👋\nВоспользуйся кнопками".format(message.from_user),
                          reply_markup=start_kb(message.from_user.id))
 
