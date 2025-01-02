@@ -1,5 +1,4 @@
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
-
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from bot_config import ADMINS
 
 
@@ -7,12 +6,13 @@ def start_kb(user_telegram_id: int):
     kb_list = [[InlineKeyboardButton(text="🛒 Корзина", callback_data='basket'),
                 InlineKeyboardButton(text="🍽 Меню", callback_data='menu')]]
 
+    if user_telegram_id in ADMINS:
+        kb_list.append([InlineKeyboardButton(text="⚙️Админ панель", callback_data='menu')])
+
     keyboard = InlineKeyboardMarkup(inline_keyboard=kb_list,
                                     resize_keyboard=True,
                                     one_time_keyboard=True,
                                     input_field_placeholder="Воспользуйтесь меню:")
-    if user_telegram_id in ADMINS:
-        kb_list.append([InlineKeyboardButton(text="⚙️Админ панель")])
     return keyboard
 
 
