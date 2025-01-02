@@ -1,11 +1,12 @@
 import uuid
+from datetime import datetime, timedelta
 from create_db import products
 from aiogram import Bot, Dispatcher, F
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import CommandStart
 from aiogram.types import Message, CallbackQuery, FSInputFile
 from basket import Basket
-from bot_config import BOT_TOKEN
+from bot_config import BOT_TOKEN, ADMINS
 from keyboards import full_menu_kb, start_kb, product_to_menu_kb, product_from_basket_kb, product_to_basket_kb, \
     basket_kb, receipt_time_kb
 from db_utils import select_from_table
@@ -14,13 +15,40 @@ bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
 
+async def send_to_admin(message: str):
+    for admin_id in ADMINS:
+        await bot.send_message(chat_id=admin_id, text=message, parse_mode='HTML')
+
+
+@dp.callback_query(F.data.split(':')[0] == 'receipt_time')
+async def process_callback_from_basket(callback_query: CallbackQuery):
+    time_now = datetime.now()
+    minutes = callback_query.data.split(':')[1]
+    receipt_time = time_now + timedelta(minutes=int(minutes))
+    # Сохранить время получения в БД
+    bs.save_ordered_time(receipt_time)
+    order_number = bs.get_order_number()
+    # ToDo Отправить сообщение администратору о заказе
+    # Создать сообщение для админа
+    message = bs.create_message_about_new_order(order_number, receipt_time)
+    await send_to_admin(message)
+    try:
+        await callback_query.message.answer(
+            text='Заказ оформлен и будет готов к получению через ' + minutes + ' минут.\nНомер заказа - ' + str(
+                order_number),
+            reply_markup=product_to_menu_kb(), parse_mode='HTML'
+        )
+    except TelegramBadRequest:
+        await callback_query.answer()
+
+
 @dp.callback_query(F.data == 'confirm_order')
-async def process_callback_delete_order(callback_query: CallbackQuery):
+async def process_callback_confirm_order(callback_query: CallbackQuery):
     bs.confirm_order()
     try:
         await callback_query.message.answer(
             text='{0}, ваш заказ успешно подтверждён\nПожалуйста, укажите через какое время заберете заказ'.format(
-                callback_query.from_user.username),
+                callback_query.from_user.first_name),
             reply_markup=receipt_time_kb())
     except TelegramBadRequest:
         await callback_query.answer()
@@ -90,9 +118,10 @@ async def process_callback_from_basket(callback_query: CallbackQuery):
         await callback_query.answer()
 
 
-@dp.callback_query(F.data == 'salad')
+@dp.callback_query(F.data.split(':')[0] == 'category')
 async def process_callback_product(callback_query: CallbackQuery):
-    result = select_from_table(products, params={'value': 'salad'})
+    category = callback_query.data.split(':')[1]
+    result = select_from_table(products, params={'value': category})
     try:
         for product in result.fetchall():
             img = FSInputFile('images/salad.jpeg')

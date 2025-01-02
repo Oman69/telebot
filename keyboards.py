@@ -17,12 +17,12 @@ def start_kb(user_telegram_id: int):
 
 
 def full_menu_kb():
-    kb_list = [[InlineKeyboardButton(text="🍲 Супы", callback_data='soup'),
-                InlineKeyboardButton(text="🍛 Гарниры", callback_data='garnish')],
-               [InlineKeyboardButton(text="🍝 Вторые блюда", callback_data='cutlet'),
-                InlineKeyboardButton(text="🥗 Салаты", callback_data='salad')],
-               [InlineKeyboardButton(text="🎂 Десерты", callback_data='cutlet'),
-                InlineKeyboardButton(text="☕ Напитки", callback_data='salad')],
+    kb_list = [[InlineKeyboardButton(text="🍲 Супы", callback_data='category:soup'),
+                InlineKeyboardButton(text="🍛 Гарниры", callback_data='category:garnish')],
+               [InlineKeyboardButton(text="🍝 Вторые блюда", callback_data='category:cutlet'),
+                InlineKeyboardButton(text="🥗 Салаты", callback_data='category:salad')],
+               [InlineKeyboardButton(text="🎂 Десерты", callback_data='category:cutlet'),
+                InlineKeyboardButton(text="☕ Напитки", callback_data='category:drinks')],
                [InlineKeyboardButton(text="↩ Назад", callback_data='start_buttons')]
                ]
 
