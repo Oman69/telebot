@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from create_db import products
 from aiogram import Bot, Dispatcher, F
 from aiogram.exceptions import TelegramBadRequest
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery, FSInputFile
 from basket import Basket
 from bot_config import BOT_TOKEN, ADMINS
@@ -165,24 +165,9 @@ async def process_start_command(message: Message):
                          reply_markup=start_kb(message.from_user.id))
 
 
-# Этот хэндлер будет срабатывать на любые ваши текстовые сообщения
-@dp.message()
-async def send_echo(message: Message):
-    try:
-        await message.answer(
-            text="Привет, {0.first_name} 👋\nЯ не поддерживаю эти ваши GPT, поэтому воспользуйся кнопками".format(
-                message.from_user),
-            reply_markup=start_kb(message.from_user.id))
-    except TypeError:
-        await message.reply(
-            text='Данный тип апдейтов не поддерживается '
-                 'методом send_copy')
-
-
 # Admin callbacks
 @dp.callback_query(F.data == 'start_admin')
 async def start_admin(callback_query: CallbackQuery):
-
     try:
         await callback_query.message.answer(
             text='{0}, приветствую Вас в панели администратора\nПожалуйста, выберите требуемое действие'.format(
@@ -194,7 +179,6 @@ async def start_admin(callback_query: CallbackQuery):
 
 @dp.callback_query(F.data == 'add_new_product')
 async def add_new_product(callback_query: CallbackQuery):
-
     try:
         await callback_query.message.answer(
             text='Выберите категорию для нового товара',
@@ -206,26 +190,64 @@ async def add_new_product(callback_query: CallbackQuery):
 @dp.callback_query(F.data.split(':')[0] == 'cat')
 async def get_category(callback_query: CallbackQuery):
     category = callback_query.data.split(':')[1]
+    global pr
     pr = Product()
     pr.product_data['category'] = category
     try:
         await callback_query.message.answer(
-            text='Введите наименование товара в формате: \nname:Наименование)',
-            reply_markup=admin_menu_kb())
+            text='Введите наименование товара в формате: \nname:Наименование\nПример: name:Мимоза')
     except TelegramBadRequest:
         await callback_query.answer()
 
 
-@dp.callback_query(F.data.split(':')[0] == 'name')
-async def get_category(callback_query: CallbackQuery):
-    name = callback_query.data.split(':')[1]
-    pr.product_data['category'] = name
+@dp.message(F.text.split(':')[0] == 'name')
+async def get_category(message: Message):
+    name = message.text.split(':')[1]
+    pr.product_data['name'] = name
     try:
-        await callback_query.message.answer(
-            text='Введите данные о новом товаре в формате: \nname:Наименование)',
-            reply_markup=admin_menu_kb())
+        await message.answer(
+            text='Введите вес товара в формате: \nweight:Вес (в граммах)\nПример: weight:200')
     except TelegramBadRequest:
-        await callback_query.answer()
+        await message.answer('Ошибка при обработке запроса')
+
+
+@dp.message(F.text.split(':')[0] == 'weight')
+async def get_category(message: Message):
+    weight = message.text.split(':')[1]
+    pr.product_data['weight'] = weight
+    try:
+        await message.answer(
+            text='Введите цену товара в формате: \nprice:Вес (в рублях)\nПример: price:159')
+    except TelegramBadRequest:
+        await message.answer('Ошибка при обработке запроса')
+
+
+@dp.message(F.text.split(':')[0] == 'price')
+async def get_category(message: Message):
+    price = message.text.split(':')[1]
+    pr.product_data['price'] = price
+    # ToDo добавить товар в меню
+    try:
+        await message.answer(
+            text='Отлично! Следующий товар:\n{0} {1} гр  {2} руб.\nдобавлен в меню'.format(pr.product_data['name'],
+            pr.product_data['weight'], price),
+            reply_markup=admin_start_kb())
+    except TelegramBadRequest:
+        await message.answer('Ошибка при обработке запроса')
+
+
+#Этот хэндлер будет срабатывать на любые ваши текстовые сообщения
+@dp.message()
+async def send_echo(message: Message):
+    try:
+        await message.answer(
+            text="Привет, {0.first_name} 👋\nЯ не поддерживаю эти ваши GPT, поэтому воспользуйся кнопками".format(
+                message.from_user),
+            reply_markup=start_kb(message.from_user.id))
+    except TypeError:
+        await message.reply(
+            text='Данный тип апдейтов не поддерживается '
+                 'методом send_copy')
 
 
 if __name__ == '__main__':
