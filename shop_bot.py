@@ -8,8 +8,9 @@ from aiogram.types import Message, CallbackQuery, FSInputFile
 from basket import Basket
 from bot_config import BOT_TOKEN, ADMINS
 from keyboards import full_menu_kb, start_kb, product_to_menu_kb, product_from_basket_kb, product_to_basket_kb, \
-    basket_kb, receipt_time_kb
+    basket_kb, receipt_time_kb, admin_start_kb, admin_menu_kb
 from db_utils import select_from_table
+from product_class import Product
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -176,6 +177,55 @@ async def send_echo(message: Message):
         await message.reply(
             text='Данный тип апдейтов не поддерживается '
                  'методом send_copy')
+
+
+# Admin callbacks
+@dp.callback_query(F.data == 'start_admin')
+async def start_admin(callback_query: CallbackQuery):
+
+    try:
+        await callback_query.message.answer(
+            text='{0}, приветствую Вас в панели администратора\nПожалуйста, выберите требуемое действие'.format(
+                callback_query.from_user.first_name),
+            reply_markup=admin_start_kb())
+    except TelegramBadRequest:
+        await callback_query.answer()
+
+
+@dp.callback_query(F.data == 'add_new_product')
+async def add_new_product(callback_query: CallbackQuery):
+
+    try:
+        await callback_query.message.answer(
+            text='Выберите категорию для нового товара',
+            reply_markup=admin_menu_kb())
+    except TelegramBadRequest:
+        await callback_query.answer()
+
+
+@dp.callback_query(F.data.split(':')[0] == 'cat')
+async def get_category(callback_query: CallbackQuery):
+    category = callback_query.data.split(':')[1]
+    pr = Product()
+    pr.product_data['category'] = category
+    try:
+        await callback_query.message.answer(
+            text='Введите наименование товара в формате: \nname:Наименование)',
+            reply_markup=admin_menu_kb())
+    except TelegramBadRequest:
+        await callback_query.answer()
+
+
+@dp.callback_query(F.data.split(':')[0] == 'name')
+async def get_category(callback_query: CallbackQuery):
+    name = callback_query.data.split(':')[1]
+    pr.product_data['category'] = name
+    try:
+        await callback_query.message.answer(
+            text='Введите данные о новом товаре в формате: \nname:Наименование)',
+            reply_markup=admin_menu_kb())
+    except TelegramBadRequest:
+        await callback_query.answer()
 
 
 if __name__ == '__main__':

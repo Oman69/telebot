@@ -7,7 +7,7 @@ def start_kb(user_telegram_id: int):
                 InlineKeyboardButton(text="🍽 Меню", callback_data='menu')]]
 
     if user_telegram_id in ADMINS:
-        kb_list.append([InlineKeyboardButton(text="⚙️Админ панель", callback_data='menu')])
+        kb_list.append([InlineKeyboardButton(text="⚙️Админ панель", callback_data='start_admin')])
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=kb_list,
                                     resize_keyboard=True,
@@ -23,6 +23,23 @@ def full_menu_kb():
                 InlineKeyboardButton(text="🥗 Салаты", callback_data='category:salad')],
                [InlineKeyboardButton(text="🎂 Десерты", callback_data='category:cutlet'),
                 InlineKeyboardButton(text="☕ Напитки", callback_data='category:drinks')],
+               [InlineKeyboardButton(text="↩ Назад", callback_data='start_buttons')]
+               ]
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=kb_list,
+                                    resize_keyboard=True,
+                                    one_time_keyboard=True,
+                                    input_field_placeholder="Воспользуйтесь меню:")
+    return keyboard
+
+
+def admin_menu_kb():
+    kb_list = [[InlineKeyboardButton(text="🍲 Супы", callback_data='cat:soup'),
+                InlineKeyboardButton(text="🍛 Гарниры", callback_data='cat:garnish')],
+               [InlineKeyboardButton(text="🍝 Вторые блюда", callback_data='cat:cutlet'),
+                InlineKeyboardButton(text="🥗 Салаты", callback_data='cat:salad')],
+               [InlineKeyboardButton(text="🎂 Десерты", callback_data='cat:cutlet'),
+                InlineKeyboardButton(text="☕ Напитки", callback_data='cat:drinks')],
                [InlineKeyboardButton(text="↩ Назад", callback_data='start_buttons')]
                ]
 
@@ -89,6 +106,20 @@ def receipt_time_kb():
                 [InlineKeyboardButton(text="Через 45 минут", callback_data='receipt_time:45')],
                 [InlineKeyboardButton(text="Через 1 час", callback_data='receipt_time:60')],
                ]
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=kb_list,
+                                    resize_keyboard=True,
+                                    one_time_keyboard=True)
+    return keyboard
+
+
+def admin_start_kb():
+    kb_list = [
+        [InlineKeyboardButton(text="Добавить новый товар", callback_data='add_new_product')],
+        [InlineKeyboardButton(text="Посмотреть текущие заказы", callback_data='get_orders_by_day')],
+        [InlineKeyboardButton(text="Удалить товар", callback_data='delete_product')],
+        [InlineKeyboardButton(text="Удалить все заказы", callback_data='delete_all_orders')],
+    ]
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=kb_list,
                                     resize_keyboard=True,
